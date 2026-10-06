@@ -1,0 +1,27 @@
+<!--@subject {{trans "Your reward from %store_name (order %order)" store_name=$store_name order=$order_increment_id}} @-->
+<!--@vars {
+"var store_name":"Store name",
+"var order_increment_id":"Order number",
+"var customer_name":"Customer first name",
+"var qr":"QR code image URL",
+"var link":"Link that opens the reward in Gamma Wallet"
+} @-->
+{{template config_path="design/email/header_template"}}
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+        <td style="padding:8px 0 4px">
+            <p style="margin:0 0 16px;font-size:20px;font-weight:bold">{{trans "Your reward is ready"}}</p>
+            <p style="margin:0 0 12px">{{trans "Hello %name," name=$customer_name}}</p>
+            <p style="margin:0 0 12px">{{trans "Thank you, we have received your payment. Your order %order earned a reward: scan the code below with the Gamma Wallet app to add it to your wallet." order=$order_increment_id}}</p>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding:8px 0 20px;text-align:center">
+            <img src="{{var qr}}" width="200" height="200" alt="QR" style="display:block;margin:0 auto 14px">
+            <a href="{{var link}}" style="color:#2e9bcc;font-weight:bold">{{trans "On your phone? Open in Gamma Wallet"}}</a>
+        </td>
+    </tr>
+</table>
+
+{{template config_path="design/email/footer_template"}}

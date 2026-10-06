@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <!-- The reward: the first save of an order once its money is in (a paid invoice). At checkout this
+         runs before the order confirmation email is built, so the email can carry the QR code. -->
+    <event name="sales_order_save_after">
+        <observer name="gamma_wallet_reward" instance="Gamma\Wallet\Observer\RewardOnPaidOrder"/>
+    </event>
+    <!-- "Use Store Credits with Gamma" is offered only when it can work for this cart. -->
+    <event name="payment_method_is_active">
+        <observer name="gamma_wallet_availability" instance="Gamma\Wallet\Observer\MethodAvailability"/>
+    </event>
+</config>

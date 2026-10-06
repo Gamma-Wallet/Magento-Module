@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="payment">
+            <group id="gammawallet" translate="label comment" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Gamma Wallet</label>
+                <comment>Your customers earn a reward for every paid order and can settle an order with the store credits they hold at your shop, by scanning a QR code with the Gamma Wallet app.</comment>
+
+                <group id="connection" translate="label" sortOrder="10" showInDefault="1">
+                    <label>Connection</label>
+                    <field id="token" translate="label comment" type="obscure" sortOrder="10" showInDefault="1">
+                        <label>Integration token</label>
+                        <comment>Create it in Gamma Business → Integrations, as the business owner. It starts with GWINT_ and is shown only once. To disconnect the shop, empty the field and save.</comment>
+                        <config_path>payment/gammawallet/token</config_path>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    </field>
+                    <field id="status" translate="label" sortOrder="20" showInDefault="1">
+                        <label>Status</label>
+                        <frontend_model>Gamma\Wallet\Block\Adminhtml\System\Status</frontend_model>
+                    </field>
+                </group>
+
+                <group id="rewards" translate="label" sortOrder="20" showInDefault="1">
+                    <label>Rewards for paid orders</label>
+                    <field id="rewards" translate="label" type="select" sortOrder="10" showInDefault="1">
+                        <label>Give customers a QR code to collect their reward for each paid order</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/gammawallet/rewards</config_path>
+                    </field>
+                    <field id="no_reward_methods" translate="label comment" type="multiselect" sortOrder="20" showInDefault="1" canRestore="1">
+                        <label>Payment methods that earn no reward</label>
+                        <comment>A reward is given only for money you have received: when the order's invoice is paid. Paid at checkout (card and the like): at once, and the QR code is on the order success page and in the order email. Paid later (check / money order, bank transfer, cash on delivery, purchase order): selected here by default; unselect them to give the reward when you create the invoice, in an email of its own. Orders settled with store credits never earn a reward.</comment>
+                        <source_model>Gamma\Wallet\Model\Config\Source\PaymentMethods</source_model>
+                        <config_path>payment/gammawallet/no_reward_methods</config_path>
+                        <can_be_empty>1</can_be_empty>
+                    </field>
+                    <field id="reward_email" translate="label" type="select" sortOrder="30" showInDefault="1">
+                        <label>Put the reward QR code in the order confirmation email</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/gammawallet/reward_email</config_path>
+                    </field>
+                </group>
+
+                <group id="credits" translate="label comment" sortOrder="30" showInDefault="1">
+                    <label>Store credits at checkout</label>
+                    <comment>At checkout, the customer scans a QR code with Gamma Wallet and the whole order is settled from their store credits. Each code is valid for 60 seconds. An order settled this way earns no reward. Orders left waiting are cancelled by Magento after the Pending Payment Order Lifetime (Sales → Sales → Orders Cron Settings).</comment>
+                    <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1">
+                        <label>Offer "Use Store Credits with Gamma" at checkout</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/gammawallet/active</config_path>
+                    </field>
+                    <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1">
+                        <label>Title</label>
+                        <config_path>payment/gammawallet/title</config_path>
+                    </field>
+                    <field id="order_status" translate="label" type="select" sortOrder="30" showInDefault="1">
+                        <label>Status while waiting for the credits</label>
+                        <source_model>Gamma\Wallet\Model\Config\Source\PendingPaymentStatus</source_model>
+                        <config_path>payment/gammawallet/order_status</config_path>
+                    </field>
+                    <field id="sort_order" translate="label" type="text" sortOrder="40" showInDefault="1">
+                        <label>Sort order</label>
+                        <frontend_class>validate-number</frontend_class>
+                        <config_path>payment/gammawallet/sort_order</config_path>
+                    </field>
+                </group>
+            </group>
+        </section>
+    </system>
+</config>

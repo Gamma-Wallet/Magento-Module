@@ -1,0 +1,32 @@
+<?php
+/**
+ * @var \Gamma\Wallet\Block\Adminhtml\Order\Box $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$state = $block->getState();
+if (!$state) {
+    return;
+}
+?>
+<section class="admin__page-section gamma-wallet-admin">
+    <div class="admin__page-section-title">
+        <span class="title"><img src="<?= $escaper->escapeUrl($block->getLogoUrl()) ?>" alt="" style="vertical-align:-4px;margin-right:6px">Gamma Wallet</span>
+    </div>
+    <div class="admin__page-section-content" style="display:flex;gap:24px;align-items:center">
+        <?php if (!empty($state['qr'])): ?>
+            <img src="<?= $escaper->escapeUrl($state['qr']) ?>" width="120" height="120" alt="QR" style="border:1px solid #ddd;padding:6px;background:#fff">
+        <?php endif; ?>
+        <div>
+            <p style="margin:0 0 6px;<?= !empty($state['error']) ? 'color:#e22626' : '' ?>"><strong><?= $escaper->escapeHtml($state['text']) ?></strong></p>
+            <?php if (!empty($state['detail'])): ?>
+                <p style="margin:0 0 10px;color:#666"><?= $escaper->escapeHtml($state['detail']) ?></p>
+            <?php endif; ?>
+            <?php if (!empty($state['resend'])): ?>
+                <form method="post" action="<?= $escaper->escapeUrl($block->getResendUrl()) ?>">
+                    <input name="form_key" type="hidden" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>">
+                    <button type="submit" class="action-secondary"><span><?= $escaper->escapeHtml(__('Send the reward QR code to the customer')) ?></span></button>
+                </form>
+            <?php endif; ?>
+        </div>
+    </div>
+</section>

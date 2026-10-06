@@ -1,0 +1,27 @@
+{
+    "gamma_wallet_order": {
+        "column": {
+            "order_id": true,
+            "bill_id": true,
+            "code": true,
+            "link": true,
+            "qr_url": true,
+            "bill_status": true,
+            "claimed_on": true,
+            "error": true,
+            "attempts": true,
+            "emailed": true,
+            "credit_request": true,
+            "credit_request_id": true,
+            "credit_expires_on": true,
+            "credit_link": true,
+            "credit_qr": true,
+            "settled_request_id": true,
+            "updated_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "GAMMA_WALLET_ORDER_ORDER_ID_SALES_ORDER_ENTITY_ID": true
+        }
+    }
+}

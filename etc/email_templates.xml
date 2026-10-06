@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="gamma_wallet_reward" label="Gamma Wallet: your reward" file="reward.html" type="html" module="Gamma_Wallet" area="frontend"/>
+</config>

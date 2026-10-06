@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Global, not frontend: the order email is also sent from the admin (an invoice created there). -->
+    <type name="Magento\Sales\Block\Order\Email\Items">
+        <plugin name="gamma_wallet_reward_in_order_email" type="Gamma\Wallet\Plugin\OrderEmailItems"/>
+    </type>
+    <!-- The token never reaches the logs, nor a config:show without the encryption key. -->
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+            <argument name="sensitive" xsi:type="array">
+                <item name="payment/gammawallet/token" xsi:type="string">1</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

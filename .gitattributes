@@ -1,0 +1,4 @@
+# Composer installs get the module only.
+/images export-ignore
+/gamma-wallet-magento.zip export-ignore
+/.gitattributes export-ignore

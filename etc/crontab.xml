@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <!-- Rewards that failed for a passing reason (Gamma busy or out of reach) get another try. -->
+        <job name="gamma_wallet_retry_rewards" instance="Gamma\Wallet\Cron\RetryRewards" method="execute">
+            <schedule>*/15 * * * *</schedule>
+        </job>
+    </group>
+</config>

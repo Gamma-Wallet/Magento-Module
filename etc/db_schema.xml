@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!-- What Gamma said about each order: its reward (bill) and its store-credit request. -->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="gamma_wallet_order" resource="sales" engine="innodb" comment="Gamma Wallet per-order data">
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" comment="sales_order.entity_id"/>
+        <column xsi:type="varchar" name="bill_id" length="64" nullable="true"/>
+        <column xsi:type="varchar" name="code" length="64" nullable="true"/>
+        <column xsi:type="varchar" name="link" length="512" nullable="true"/>
+        <column xsi:type="varchar" name="qr_url" length="512" nullable="true"/>
+        <column xsi:type="varchar" name="bill_status" length="32" nullable="true"/>
+        <column xsi:type="varchar" name="claimed_on" length="40" nullable="true"/>
+        <column xsi:type="varchar" name="error" length="255" nullable="true"/>
+        <column xsi:type="smallint" name="attempts" unsigned="true" nullable="false" default="0"/>
+        <column xsi:type="int" name="emailed" unsigned="true" nullable="false" default="0" comment="Unix time the reward email was sent"/>
+        <column xsi:type="text" name="credit_request" nullable="true"/>
+        <column xsi:type="varchar" name="credit_request_id" length="64" nullable="true"/>
+        <column xsi:type="varchar" name="credit_expires_on" length="40" nullable="true"/>
+        <column xsi:type="varchar" name="credit_link" length="512" nullable="true"/>
+        <column xsi:type="mediumtext" name="credit_qr" nullable="true"/>
+        <column xsi:type="varchar" name="settled_request_id" length="64" nullable="true"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="order_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="GAMMA_WALLET_ORDER_ORDER_ID_SALES_ORDER_ENTITY_ID" table="gamma_wallet_order"
+                    column="order_id" referenceTable="sales_order" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
+</schema>
