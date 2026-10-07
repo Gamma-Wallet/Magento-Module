@@ -44,7 +44,7 @@ Give these steps to whoever looks after your Magento server. Either way works.
 
 ```bash
 composer config repositories.gamma-wallet vcs https://github.com/Gamma-Wallet/Magento-Module
-composer require gamma-wallet/module-gamma-wallet:^1.1
+composer require gammawallet/module-gamma-wallet:^1.1
 bin/magento module:enable Gamma_Wallet
 bin/magento setup:upgrade
 bin/magento cache:flush
@@ -58,7 +58,7 @@ Magento's **cron must be running** (it is on any normal Magento server): the mod
 
 Only orders placed **after** the module is installed earn rewards; older orders never do.
 
-**Updating:** `composer update gamma-wallet/module-gamma-wallet` (or replace the folder from the new zip), then `bin/magento setup:upgrade` and `bin/magento cache:flush`.
+**Updating:** `composer update gammawallet/module-gamma-wallet` (or replace the folder from the new zip), then `bin/magento setup:upgrade` and `bin/magento cache:flush`.
 
 ## 3. Create your integration token in Gamma Business
 
