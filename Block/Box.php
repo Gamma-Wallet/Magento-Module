@@ -71,8 +71,9 @@ class Box extends Template
                 if (!$row['credit_request']) {
                     // The first time the customer sees the order: ask Gamma for the code now, so its
                     // 60 seconds start when it is on the screen. Later codes come from "Show a new code".
+                    // Two pages opened together get one code: the second one shows what the first started.
                     try {
-                        $this->credits->startRequest($order);
+                        $this->credits->startRequest($order, true);
                     } catch (\Gamma\Wallet\Model\Api\ApiError $e) {
                         $this->_logger->warning('Gamma Wallet: store-credit request for order ' . $order->getIncrementId() . ' failed: ' . $e->getMessage());
                     }
@@ -89,9 +90,10 @@ class Box extends Template
             } else {
                 return null;
             }
-        } elseif ($this->rewards->ensureBill($order)) {
+        } elseif ($this->rewards->ensureBill($order, 5)) {
+            // Short wait: the page is being built. Whether it was collected is asked by the page script.
             $row = $this->orderData->get($orderId);
-            $claimed = $row['bill_status'] === 'Claimed' || $this->rewards->refreshStatus($order) === 'Claimed';
+            $claimed = $row['bill_status'] === 'Claimed';
             $box += ['kind' => 'reward', 'claimed' => $claimed, 'qr' => $row['qr_url'], 'link' => $row['link']];
         } elseif (!Rewards::isPaid($order) && $this->rewards->mayEarn($order) && !$order->isCanceled()) {
             $box += ['kind' => 'note', 'note' => Gamma::isPayLater(Gamma::methodCode($order))

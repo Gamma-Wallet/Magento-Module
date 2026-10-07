@@ -20,11 +20,16 @@ class AddAwaitingStatus implements DataPatchInterface
     public function apply(): self
     {
         $connection = $this->setup->getConnection();
-        $connection->insertOnDuplicate($this->setup->getTable('sales_order_status'),
-            ['status' => self::STATUS, 'label' => 'Awaiting Gamma store credits'], ['label']);
-        $connection->insertOnDuplicate($this->setup->getTable('sales_order_status_state'),
+        $connection->insertOnDuplicate(
+            $this->setup->getTable('sales_order_status'),
+            ['status' => self::STATUS, 'label' => 'Awaiting Gamma store credits'],
+            ['label']
+        );
+        $connection->insertOnDuplicate(
+            $this->setup->getTable('sales_order_status_state'),
             ['status' => self::STATUS, 'state' => Order::STATE_PENDING_PAYMENT, 'is_default' => 0, 'visible_on_front' => 1],
-            ['visible_on_front']);
+            ['visible_on_front']
+        );
 
         return $this;
     }

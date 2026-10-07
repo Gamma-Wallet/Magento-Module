@@ -5,5 +5,13 @@
         <job name="gamma_wallet_retry_rewards" instance="Gamma\Wallet\Cron\RetryRewards" method="execute">
             <schedule>*/15 * * * *</schedule>
         </job>
+        <!-- Store-credit orders the customer confirmed in the app after leaving the page. -->
+        <job name="gamma_wallet_reconcile_credits" instance="Gamma\Wallet\Cron\ReconcileCredits" method="execute">
+            <schedule>*/2 * * * *</schedule>
+        </job>
+        <!-- The connection check, so a checkout never waits for Gamma. -->
+        <job name="gamma_wallet_check_connection" instance="Gamma\Wallet\Cron\CheckConnection" method="execute">
+            <schedule>17 * * * *</schedule>
+        </job>
     </group>
 </config>

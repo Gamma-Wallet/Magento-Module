@@ -11,18 +11,10 @@ use Magento\Framework\HTTP\Client\CurlFactory;
 class Client
 {
     public const DEFAULT_URL = 'https://integration.gamma-wallet.com';
-    public const VERSION = '1.0.0';
+    public const VERSION = '1.1.0';
 
-    public function __construct(private CurlFactory $curlFactory, private string $token)
+    public function __construct(private CurlFactory $curlFactory, private string $token, private string $baseUrl = self::DEFAULT_URL)
     {
-    }
-
-    /** Can be overridden for testing: SetEnv GAMMA_WALLET_API_URL https://… (or a PHP env variable). */
-    public static function baseUrl(): string
-    {
-        $url = getenv('GAMMA_WALLET_API_URL');
-
-        return rtrim($url ?: self::DEFAULT_URL, '/');
     }
 
     /** Who the token belongs to: business, currency, whether customers can claim, token expiry. */
@@ -32,14 +24,14 @@ class Client
     }
 
     /** Declares a paid order. Safe to repeat with the same reference: Gamma returns the same bill. */
-    public function createBill(array $bill): array
+    public function createBill(array $bill, int $timeout = 20): array
     {
-        return $this->send('POST', '/api/Bill/Create', $bill);
+        return $this->send('POST', '/api/Bill/Create', $bill, $timeout);
     }
 
-    public function getBill(string $billId): array
+    public function getBill(string $billId, int $timeout = 20): array
     {
-        return $this->send('GET', '/api/Bill/Get/' . rawurlencode($billId));
+        return $this->send('GET', '/api/Bill/Get/' . rawurlencode($billId), null, $timeout);
     }
 
     /** A new store-credit request for the whole order. */
@@ -61,8 +53,10 @@ class Client
     public static function json(array $body): string
     {
         $previous = ini_get('serialize_precision');
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction -- only way to make json_encode write floats exactly; restored below.
         ini_set('serialize_precision', '-1');
         $json = json_encode($body, JSON_PRESERVE_ZERO_FRACTION);
+        // phpcs:ignore Magento2.Functions.DiscouragedFunction -- restores the server's own setting.
         ini_set('serialize_precision', (string)$previous);
 
         return (string)$json;
@@ -79,9 +73,9 @@ class Client
         try {
             if ($method === 'POST') {
                 $curl->addHeader('Content-Type', 'application/json');
-                $curl->post(self::baseUrl() . $path, self::json($body ?? []));
+                $curl->post($this->baseUrl . $path, self::json($body ?? []));
             } else {
-                $curl->get(self::baseUrl() . $path);
+                $curl->get($this->baseUrl . $path);
             }
         } catch (\Exception $e) {
             throw new ApiError(0, null, 'Gamma could not be reached: ' . $e->getMessage());

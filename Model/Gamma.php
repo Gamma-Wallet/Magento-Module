@@ -4,6 +4,7 @@ namespace Gamma\Wallet\Model;
 use Gamma\Wallet\Model\Api\ApiError;
 use Gamma\Wallet\Model\Api\Client;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\FlagManager;
 use Magento\Framework\HTTP\Client\CurlFactory;
 use Magento\Sales\Model\Order;
@@ -23,13 +24,16 @@ class Gamma
     private const PATH = 'payment/gammawallet/';
     private const FLAG_SECRET = 'gamma_wallet_secret';
     private const FLAG_CONNECTION = 'gamma_wallet_connection';
+    /** When the module was installed (Unix time): orders placed before it never earn a reward. */
+    public const FLAG_INSTALLED_ON = 'gamma_wallet_installed_on';
 
     private ?array $connection = null;
 
     public function __construct(
         private ScopeConfigInterface $scopeConfig,
         private FlagManager $flagManager,
-        private CurlFactory $curlFactory
+        private CurlFactory $curlFactory,
+        private DeploymentConfig $deploymentConfig
     ) {
     }
 
@@ -50,7 +54,21 @@ class Gamma
     {
         $token = $this->token();
 
-        return $token === '' ? null : new Client($this->curlFactory, $token);
+        return $token === '' ? null : new Client($this->curlFactory, $token, $this->apiUrl());
+    }
+
+    /** The Gamma Integration API. For testing, app/etc/env.php can name another: 'gamma_wallet' => ['api_url' => 'https://…']. */
+    private function apiUrl(): string
+    {
+        $url = (string)$this->deploymentConfig->get('gamma_wallet/api_url');
+
+        return rtrim($url !== '' ? $url : Client::DEFAULT_URL, '/');
+    }
+
+    /** When the module was installed, or 0 when unknown. */
+    public function installedOn(): int
+    {
+        return (int)$this->flagManager->getFlagData(self::FLAG_INSTALLED_ON);
     }
 
     public function creditsEnabled(): bool
@@ -179,13 +197,19 @@ class Gamma
         }
     }
 
-    /** True while the business's active Gamma service is a Reward service. The module does nothing for customers otherwise. */
+    /**
+     * True while the business's active Gamma service is a Reward service. The module does nothing for
+     * customers otherwise. Uses the last check, which the hourly cron keeps fresh; only when there has
+     * never been one is Gamma asked here.
+     */
     public function rewardServiceActive(): bool
     {
         if ($this->token() === '') {
             return false;
         }
-        $this->refreshIfStale(3);
+        if (!$this->connection()) {
+            $this->checkConnection(3);
+        }
 
         return !empty($this->connection()['canClaim']);
     }

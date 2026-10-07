@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="payment">
-            <group id="gammawallet" translate="label comment" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0">
+            <group id="gammawallet" translate="label comment" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Gamma Wallet</label>
                 <comment>Your customers earn a reward for every paid order and can settle an order with the store credits they hold at your shop, by scanning a QR code with the Gamma Wallet app.</comment>
 
@@ -41,7 +41,7 @@
                     </field>
                 </group>
 
-                <group id="credits" translate="label comment" sortOrder="30" showInDefault="1">
+                <group id="credits" translate="label comment" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Store credits at checkout</label>
                     <comment>At checkout, the customer scans a QR code with Gamma Wallet and the whole order is settled from their store credits. Each code is valid for 60 seconds. An order settled this way earns no reward. Orders left waiting are cancelled by Magento after the Pending Payment Order Lifetime (Sales → Sales → Orders Cron Settings).</comment>
                     <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1">
@@ -49,7 +49,8 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/gammawallet/active</config_path>
                     </field>
-                    <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1">
+                    <field id="title" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <comment>What customers see at checkout. Can be set per store view, for example in another language.</comment>
                         <label>Title</label>
                         <config_path>payment/gammawallet/title</config_path>
                     </field>

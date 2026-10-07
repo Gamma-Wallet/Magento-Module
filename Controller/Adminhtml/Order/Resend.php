@@ -1,6 +1,7 @@
 <?php
 namespace Gamma\Wallet\Controller\Adminhtml\Order;
 
+use Gamma\Wallet\Model\OrderData;
 use Gamma\Wallet\Model\Rewards;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
@@ -12,8 +13,12 @@ class Resend extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Gamma_Wallet::order';
 
-    public function __construct(Context $context, private OrderRepositoryInterface $orders, private Rewards $rewards)
-    {
+    public function __construct(
+        Context $context,
+        private OrderRepositoryInterface $orders,
+        private Rewards $rewards,
+        private OrderData $data
+    ) {
         parent::__construct($context);
     }
 
@@ -22,6 +27,10 @@ class Resend extends Action implements HttpPostActionInterface
         $orderId = (int)$this->getRequest()->getParam('order_id');
         try {
             $order = $this->orders->get($orderId);
+            // A click is a deliberate new try, also after the automatic ones ran out.
+            if (!$this->data->get($orderId)['bill_id']) {
+                $this->data->save($orderId, ['attempts' => 0]);
+            }
             if ($this->rewards->sendRewardEmail($order)) {
                 $this->messageManager->addSuccessMessage(__('The reward QR code was emailed to the customer.'));
             } else {

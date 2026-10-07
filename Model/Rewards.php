@@ -29,10 +29,20 @@ class Rewards
     ) {
     }
 
-    /** The money is in: at least part of the order has a paid invoice. */
+    /** The money is in: the order's invoices are paid in full (a first partial invoice is not enough). */
     public static function isPaid(Order $order): bool
     {
-        return (float)$order->getTotalPaid() > 0;
+        return (float)$order->getTotalPaid() > 0 && (float)$order->getTotalPaid() >= (float)$order->getGrandTotal() - 0.005;
+    }
+
+    /** Placed since the module was installed: older orders never earn a reward. */
+    public function placedSinceInstall(Order $order): bool
+    {
+        $installedOn = $this->gamma->installedOn();
+        // Magento keeps created_at in UTC.
+        $createdOn = strtotime((string)$order->getCreatedAt() . ' UTC');
+
+        return $installedOn > 0 && $createdOn !== false && $createdOn >= $installedOn;
     }
 
     /** True when this order can ever earn a reward, now or once its invoice is paid. */
@@ -50,6 +60,7 @@ class Rewards
     {
         return self::isPaid($order)
             && (float)$order->getGrandTotal() > 0
+            && $this->placedSinceInstall($order)
             && $this->mayEarn($order)
             && $this->gamma->currencyMatches((string)$order->getOrderCurrencyCode());
     }
@@ -84,7 +95,7 @@ class Rewards
                 'issuedOn'      => gmdate(DATE_ATOM, strtotime($order->getCreatedAt() . ' UTC') ?: time()),
                 'platform'      => 'magento',
                 'pluginVersion' => Client::VERSION,
-            ]);
+            ], $timeout);
         } catch (ApiError $e) {
             $this->data->save($orderId, ['error' => substr(Gamma::explain($e), 0, 250), 'attempts' => (int)$row['attempts'] + 1]);
             $this->logger->warning('Gamma Wallet: bill for order ' . $order->getIncrementId() . ' failed: ' . $e->getMessage());
@@ -100,7 +111,7 @@ class Rewards
     }
 
     /** Asks Gamma whether the reward was collected. "Waiting" or "Claimed". */
-    public function refreshStatus(Order $order): string
+    public function refreshStatus(Order $order, int $timeout = 20): string
     {
         $orderId = (int)$order->getId();
         $row = $this->data->get($orderId);
@@ -109,7 +120,7 @@ class Rewards
             return (string)$row['bill_status'];
         }
         try {
-            $bill = $api->getBill($row['bill_id']);
+            $bill = $api->getBill($row['bill_id'], $timeout);
         } catch (ApiError $e) {
             return (string)$row['bill_status'];
         }

@@ -1,7 +1,8 @@
 <?php
 /**
  * The Gamma Wallet box: the reward QR code, the store-credit QR code with its countdown, or a note.
- * Asks this shop (never Gamma) every 5 seconds through gamma_wallet.js.
+ * Asks this shop (never Gamma) every 5 seconds through gamma_wallet.js (loaded by RequireJS; the
+ * stylesheet comes from the layout).
  *
  * @var \Gamma\Wallet\Block\Box $block
  * @var \Magento\Framework\Escaper $escaper
@@ -12,7 +13,6 @@ if (!$box) {
 }
 $logo = $block->getViewFileUrl('Gamma_Wallet::images/gamma-logo.png');
 ?>
-<link rel="stylesheet" href="<?= $escaper->escapeUrl($block->getViewFileUrl('Gamma_Wallet::css/gamma_wallet.css')) ?>">
 <?php if ($box['kind'] === 'reward'): ?>
 <section class="gamma-wallet-box" data-kind="reward" data-texts="<?= $escaper->escapeHtmlAttr($block->getTexts()) ?>" data-status-url="<?= $escaper->escapeUrl($box['status_url']) ?>" data-poll="<?= $box['claimed'] ? '0' : '1' ?>">
   <div class="gw-card<?= $box['claimed'] ? ' gw-is-done' : '' ?>">
@@ -61,4 +61,4 @@ $logo = $block->getViewFileUrl('Gamma_Wallet::images/gamma-logo.png');
 <?php else: ?>
 <p class="gamma-wallet-note"><?= $escaper->escapeHtml($box['note']) ?></p>
 <?php endif; ?>
-<script src="<?= $escaper->escapeUrl($block->getViewFileUrl('Gamma_Wallet::js/gamma_wallet.js')) ?>"></script>
+<script type="text/x-magento-init">{"*": {"Gamma_Wallet/js/gamma_wallet": {}}}</script>

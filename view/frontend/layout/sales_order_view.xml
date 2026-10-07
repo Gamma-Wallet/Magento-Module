@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <!-- The customer's own order page (My Account → My Orders). -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Gamma_Wallet::css/gamma_wallet.css"/>
+    </head>
     <body>
         <referenceContainer name="content">
             <block class="Gamma\Wallet\Block\Box" name="gamma.wallet.order" before="-" cacheable="false"/>

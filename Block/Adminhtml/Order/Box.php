@@ -43,6 +43,15 @@ class Box extends Template
         $row = $this->orderData->get((int)$order->getId());
         $method = Gamma::methodCode($order);
         if ($method === Gamma::METHOD) {
+            if (!$row['settled_request_id'] && $row['credit_request'] && $order->getState() === Order::STATE_PENDING_PAYMENT) {
+                // The customer may have confirmed in the app after leaving the page: ask Gamma now.
+                try {
+                    $this->credits->status($order);
+                    $row = $this->orderData->get((int)$order->getId());
+                } catch (\Throwable $e) {
+                    $this->_logger->warning('Gamma Wallet: checking order ' . $order->getIncrementId() . ' failed: ' . $e->getMessage());
+                }
+            }
             if ($row['settled_request_id']) {
                 return ['text' => __('Settled with store credits through Gamma Wallet.'),
                     'detail' => __('Request %1', $row['settled_request_id']), 'resend' => false];
@@ -53,7 +62,7 @@ class Box extends Template
                 : __('No reward is given for an order settled with store credits.'), 'resend' => false];
         }
         if ($row['bill_id']) {
-            $claimed = $row['bill_status'] === 'Claimed' || $this->rewards->refreshStatus($order) === 'Claimed';
+            $claimed = $row['bill_status'] === 'Claimed' || $this->rewards->refreshStatus($order, 5) === 'Claimed';
 
             return ['text' => $claimed ? __('Reward collected') : __('Waiting for the customer to collect the reward'),
                 'detail' => __('Bill %1', $row['code'] ?: $row['bill_id']), 'qr' => $claimed ? null : $row['qr_url'], 'resend' => !$claimed];

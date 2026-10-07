@@ -53,14 +53,18 @@ class Status extends Field
             if (empty($connection['canClaim'])) {
                 $lines[] = '<p style="color:#e22626">' . $e->escapeHtml(__('Gamma Wallet for Magento works only with a Reward service. Your business has no Reward service active in Gamma, so customers get no reward QR code and store credits are not offered at checkout. Activate a Reward service in Gamma Business.')) . '</p>';
             }
-            $shopCurrency = (string)$this->storeManager->getStore()->getBaseCurrencyCode();
+            // The currency customers are charged in (the default store view's), which is what orders send.
+            $shopCurrency = (string)$this->storeManager->getDefaultStoreView()->getDefaultCurrencyCode();
             if (!empty($connection['currencyCode']) && strcasecmp($connection['currencyCode'], $shopCurrency) !== 0) {
                 $lines[] = '<p style="color:#e22626">' . $e->escapeHtml(__('Your shop sells in %1 but your Gamma business uses %2. Orders cannot be sent to Gamma until they match.', $shopCurrency, $connection['currencyCode'])) . '</p>';
             }
         }
         if (!empty($connection['checkedOn'])) {
             $lines[] = '<p style="color:#666;font-size:12px;margin:4px 0">' . $e->escapeHtml(__('Checked')) . ' ' . $e->escapeHtml($this->_localeDate->formatDateTime(
-                (new \DateTime('@' . (int)$connection['checkedOn'])), \IntlDateFormatter::MEDIUM, \IntlDateFormatter::SHORT)) . '</p>';
+                (new \DateTime('@' . (int)$connection['checkedOn'])),
+                \IntlDateFormatter::MEDIUM,
+                \IntlDateFormatter::SHORT
+            )) . '</p>';
         }
         $lines[] = '<a class="action-default" style="display:inline-block;margin-top:6px" href="' . $e->escapeUrl($this->getUrl('gammawallet/connection/check')) . '">' . $e->escapeHtml(__('Check again')) . '</a>';
 

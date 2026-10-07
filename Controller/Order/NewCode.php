@@ -16,8 +16,12 @@ use Psr\Log\LoggerInterface;
 
 /**
  * POST gammawallet/order/newCode: a new store-credit code. Asks Gamma about the current one first, which
- * may have just been settled. The per-order key stands in for Magento's form key, so the page needs no
- * session (it also works for guests and on the order page opened later).
+ * may have just been settled.
+ *
+ * CSRF: Magento's form key is not used because the page must work without a session (guests, the order
+ * page opened later from an email). The request carries the per-order key instead: an HMAC of the order
+ * id with this installation's secret, printed only on pages Magento already restricts to the order's
+ * owner. A forged request without it is refused; with it, it can only ask for a new code for that order.
  */
 class NewCode extends AbstractAction implements HttpPostActionInterface, CsrfAwareActionInterface
 {
@@ -68,7 +72,11 @@ class NewCode extends AbstractAction implements HttpPostActionInterface, CsrfAwa
             return $this->reply(['error' => 'still_valid'], 409);
         }
         try {
+            // Reserved atomically: a second click or tab arriving meanwhile gets "still valid".
             $started = $this->credits->startRequest($order);
+            if ($started === null) {
+                return $this->reply(['error' => 'still_valid'], 409);
+            }
         } catch (ApiError $e) {
             $this->logger->warning('Gamma Wallet: new store-credit code for order ' . $order->getIncrementId() . ' failed: ' . $e->getMessage());
 

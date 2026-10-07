@@ -44,7 +44,7 @@ Give these steps to whoever looks after your Magento server. Either way works.
 
 ```bash
 composer config repositories.gamma-wallet vcs https://github.com/Gamma-Wallet/Magento-Module
-composer require gamma-wallet/module-gamma-wallet:^1.0
+composer require gamma-wallet/module-gamma-wallet:^1.1
 bin/magento module:enable Gamma_Wallet
 bin/magento setup:upgrade
 bin/magento cache:flush
@@ -53,6 +53,12 @@ bin/magento cache:flush
 **Or from the zip:** download **[gamma-wallet-magento.zip](gamma-wallet-magento.zip)** (on GitHub, open the file and click *Download raw file*), unzip it in the Magento root folder (it creates `app/code/Gamma/Wallet`), then run the last three commands above.
 
 A shop in production mode also needs `bin/magento setup:di:compile` and `bin/magento setup:static-content:deploy` before the cache flush, as after any module install.
+
+Magento's **cron must be running** (it is on any normal Magento server): the module uses it to retry rewards, to keep the connection check fresh, and to settle store-credit orders whose customer closed the page.
+
+Only orders placed **after** the module is installed earn rewards; older orders never do.
+
+**Updating:** `composer update gamma-wallet/module-gamma-wallet` (or replace the folder from the new zip), then `bin/magento setup:upgrade` and `bin/magento cache:flush`.
 
 ## 3. Create your integration token in Gamma Business
 
@@ -111,6 +117,8 @@ Good to know:
 - The option is shown only when your shop is connected, your business has a Reward service active, the currency matches and the order total is above zero.
 - An order settled with store credits doesn't earn a new reward.
 - The order confirmation email is sent once the order is settled, not before.
+- If the customer confirms in the app and closes the page straight away, the order is still settled: Magento's cron asks Gamma every couple of minutes about orders waiting for credits.
+- If an order is paid with credits after it was cancelled (by you, or by Magento's lifetime limit), it is not changed: you get an admin notification and a note on the order, because the customer has used their credits.
 - An order nobody settles is cancelled by Magento after the *Pending Payment Order Lifetime* (**Stores → Configuration → Sales → Sales → Orders Cron Settings**, 8 hours by default).
 
 ## 7. What your customers see
@@ -170,7 +178,12 @@ Do both steps together. **The old token stops working the moment you create the 
 No. Customers pay you exactly as before, through the payment methods you already use. Gamma only records the reward contract for the order. A customer who uses store credits is using value you promised earlier, not paying Gamma.
 
 **What does the module send to Gamma?**
-For each order that earns a reward or uses store credits: an order reference (such as *MG-3f9a1c-000000042*: your order number with a short tag for your shop), the total, the currency and the order date. No names, addresses, email addresses or products.
+Every request carries your integration token and the module version. For each order that earns a reward or uses store credits: an order reference (such as *MG-3f9a1c-000000042*: your order number with a short tag for your shop), the total, the currency, the order date, and the name of the platform (Magento). About once an hour it checks the connection. No names, addresses, email addresses or products.
+
+The reward QR code image on the order pages, in the order emails and on the admin order page is loaded from `integration.gamma-wallet.com`, so the customer's browser or email app contacts that server when it shows it. Mention this in your shop's privacy policy. The module lists that host in Magento's Content Security Policy, so the image also shows when your CSP is strict.
+
+**When exactly is the reward given?**
+When the order is paid in full: its invoices cover the whole total. A first partial invoice is not enough.
 
 **I run several stores in one Magento installation.**
 The module connects one Gamma business per Magento installation, and all its stores use it. Orders in a currency other than your Gamma business's earn no reward and can't use store credits.
@@ -188,7 +201,7 @@ The module doesn't take a reward back. If the order already had a reward, its QR
 Rewards are created on the server, so they work with any storefront, and they always arrive in the order emails. The success-page boxes and the *Use Store Credits with Gamma* option are built for the standard Luma theme and checkout; other storefronts need their own small adaptation.
 
 **What happens if I remove the module?**
-New rewards stop and the store credits option disappears. Rewards already given stay in your customers' wallets. The status *Awaiting Gamma store credits* and the module's order table stay, because past orders use them.
+New rewards stop and the store credits option disappears. Rewards already given stay in your customers' wallets. Removed with `bin/magento module:uninstall Gamma_Wallet` (Composer installs), the module's settings, including your integration token, are deleted. The status *Awaiting Gamma store credits* and the module's order table stay, because past orders use them.
 
 ## 11. When something is wrong
 
@@ -196,10 +209,11 @@ New rewards stop and the store credits option disappears. Rewards already given 
 |---|---|
 | **Status** says the token is not valid, expired or disabled | Create a new token in Gamma Business → Integrations and paste it in. |
 | *… works only with a Reward service* | Your active service in Gamma is not a Reward service. Activate a Reward service in Gamma Business. The module checks again every hour; click **Check again** to see the change at once. |
-| *Your shop sells in … but your Gamma business uses …* | Your shop's base currency (**Stores → Configuration → General → Currency Setup**) must be the same as your Gamma business currency. |
+| *Your shop sells in … but your Gamma business uses …* | The currency your customers pay in (**Stores → Configuration → General → Currency Setup**, default display currency) must be the same as your Gamma business currency. |
 | *Use Store Credits with Gamma* is missing at checkout | Check that it is turned on in the settings, that **Status** shows *Connected* with no red line about the Reward service, that the currencies match and that the total is above zero. |
-| An order has no reward | Check that your business has a Reward service active, that the payment method is not selected under *Payment methods that earn no reward*, that **Rewards** is on, and that the order's invoice is paid. The order's Gamma Wallet box gives the reason. |
-| An error in the order's Gamma Wallet box | Fix the cause it names (usually the token), then click **Send the reward QR code to the customer**: this creates the reward and emails it. Passing errors are also retried by Magento's cron every 15 minutes. |
+| An order has no reward | Check that your business has a Reward service active, that the payment method is not selected under *Payment methods that earn no reward*, that **Rewards** is on, that the order is paid in full, and that it was placed after the module was installed. The order's Gamma Wallet box gives the reason. |
+| An error in the order's Gamma Wallet box | Fix the cause it names (usually the token), then click **Send the reward QR code to the customer**: this creates the reward and emails it, also after the automatic tries have run out. Passing errors are also retried by Magento's cron every 15 minutes. |
+| An order paid with store credits still waits | Open it in the admin: the Gamma Wallet box asks Gamma at once. Check that Magento's cron is running; it settles such orders every couple of minutes. |
 | *Gamma could not be reached* | Your server must allow outgoing connections to `https://integration.gamma-wallet.com`. Ask your hosting provider if this message stays. |
 | *Too many requests to Gamma* | Wait a minute and try again. |
 | The reward email didn't arrive | Ask the customer to check their spam folder, then send it again from the order. If none of your shop's emails arrive, the problem is your shop's mail settings, not the module. |
