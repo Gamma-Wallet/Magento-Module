@@ -11,7 +11,7 @@ use Magento\Framework\HTTP\Client\CurlFactory;
 class Client
 {
     public const DEFAULT_URL = 'https://integration.gamma-wallet.com';
-    public const VERSION = '1.1.0';
+    public const VERSION = '1.1.1';
 
     public function __construct(private CurlFactory $curlFactory, private string $token, private string $baseUrl = self::DEFAULT_URL)
     {
